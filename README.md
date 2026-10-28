@@ -2,6 +2,9 @@
 
 SupportIQ is a customer-support question-answering system that uses Retrieval-Augmented Generation (RAG) to answer questions from policy documents. It retrieves relevant passages from a policy PDF and supplies them to a language model to generate evidence-based responses.
 
+## Demo — Swagger UI
+Screenshot 2026-10-29 012747.png
+Screenshot 2026-10-29 012929.png
 ## Features
 
 - **PDF ingestion:** Extracts policy text while preserving page numbers and source metadata.
