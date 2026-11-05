@@ -37,3 +37,6 @@ app/data/policies/*.pdf
 # Generated embedding/cache data
 chroma_db/
 vector_store/
+
+# ChromaDB local vector storage
+chroma_db/

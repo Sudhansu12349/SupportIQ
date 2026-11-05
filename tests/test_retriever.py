@@ -1,53 +1,49 @@
 
+from unittest.mock import Mock
+
 import pytest
 
 from app.services.retriever import Retriever
 
 
-def test_search_ranks_most_similar_chunk_first():
-    chunks = [
+def test_search_returns_relevant_chunks():
+    mock_vector_store = Mock()
+
+    expected_results = [
         {
-            "content": "The product warranty covers manufacturing defects.",
+            "content": "Warranty is valid for 12 months.",
             "source": "policy.pdf",
             "page_number": 1,
-        },
-        {
-            "content": "Refunds are available for eligible returns.",
-            "source": "policy.pdf",
-            "page_number": 2,
-        },
+            "chunk_id": "chunk_1",
+            "similarity_distance": 0.15
+        }
     ]
 
-    # Simple normalized vectors for testing retrieval logic.
-    embeddings = [
-        [1.0, 0.0],
-        [0.0, 1.0],
-    ]
+    mock_vector_store.search.return_value = expected_results
 
-    retriever = Retriever(chunks, embeddings)
+    retriever = Retriever(mock_vector_store)
 
-    # This query is identical to the first chunk's vector.
-    results = retriever.search([1.0, 0.0], top_k=2)
+    results = retriever.search("What is the warranty period?", top_k=3)
 
-    assert len(results) == 2
-    assert results[0]["content"] == chunks[0]["content"]
-    assert results[0]["similarity"] == pytest.approx(1.0)
-    assert results[0]["page_number"] == 1
+    assert results == expected_results
+
+    mock_vector_store.search.assert_called_once_with(
+        query="What is the warranty period?",
+        top_k=3
+    )
 
 
-def test_search_rejects_mismatched_embedding_count():
-    chunks = [{"content": "Example", "source": "policy.pdf", "page_number": 1}]
-    embeddings = []
+def test_search_uses_default_top_k():
+    mock_vector_store = Mock()
+    mock_vector_store.search.return_value = []
 
-    with pytest.raises(ValueError, match="one embedding"):
-        Retriever(chunks, embeddings)
+    retriever = Retriever(mock_vector_store)
 
+    results = retriever.search("Warranty information")
 
-def test_search_rejects_wrong_query_dimensions():
-    chunks = [{"content": "Example", "source": "policy.pdf", "page_number": 1}]
-    embeddings = [[1.0, 0.0]]
+    assert results == []
 
-    retriever = Retriever(chunks, embeddings)
-
-    with pytest.raises(ValueError, match="dimensions"):
-        retriever.search([1.0, 0.0, 0.0])
+    mock_vector_store.search.assert_called_once_with(
+        query="Warranty information",
+        top_k=3
+    )
